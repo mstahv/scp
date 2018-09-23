@@ -56,7 +56,7 @@ public abstract class AbstractEntity implements Serializable, Cloneable {
     @Override
     public String toString() {
         if(id != null) {
-            return "Entity " + id;
+            return "Entity " + id + " " + System.identityHashCode(this);
         }
         return super.toString();
     }

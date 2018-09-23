@@ -7,11 +7,14 @@ import com.vividsolutions.jts.geom.Point;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.ManyToOne;
 import javax.persistence.Transient;
 
 @Entity
 public class HelperBuoy extends AbstractBuoy {
 
+    @ManyToOne(fetch = FetchType.EAGER)
     private MainBuoy mainBuoy;
 
     public HelperBuoy() {
@@ -28,7 +31,6 @@ public class HelperBuoy extends AbstractBuoy {
     @Transient
     public LineString getConnectionLine() {
         GeometryFactory factory = new GeometryFactory();
-        mainBuoy.getLocation();
         return factory.createLineString(new Coordinate[]{mainBuoy.getLocation().getCoordinate(), getLocation().getCoordinate()});
     }
 }

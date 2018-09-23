@@ -1,5 +1,6 @@
 package org.vaadin.scp.jpa;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.ManyToMany;
 import javax.persistence.OneToMany;
@@ -15,20 +16,20 @@ import java.util.Set;
 @Entity
 public class SailingCourse extends AbstractEntity {
 
-    private String title;
+    private String courseName;
 
     @Temporal(TemporalType.DATE)
     private Date date;
 
-    @OneToMany
+    @OneToMany(cascade = CascadeType.ALL)
     private Set<MainBuoy> mainBuoys = new HashSet<>();
-    @OneToMany
+    @OneToMany(cascade = CascadeType.ALL)
     private Set<HelperBuoy> helperBuoys = new HashSet<>();
 
-    @ManyToMany
+    @ManyToMany(cascade = CascadeType.ALL)
     @OrderColumn
     private List<MainBuoy> coursePoints = new ArrayList<>();
-
+    
     public SailingCourse() {
 
     }
@@ -41,12 +42,12 @@ public class SailingCourse extends AbstractEntity {
         this.date = date;
     }
 
-    public String getTitle() {
-        return title;
+    public String getCourseName() {
+        return courseName;
     }
 
-    public void setTitle(String title) {
-        this.title = title;
+    public void setCourseName(String courseName) {
+        this.courseName = courseName;
     }
 
     public Set<MainBuoy> getMainBuoys() {
@@ -72,5 +73,5 @@ public class SailingCourse extends AbstractEntity {
     public void setCoursePoints(List<MainBuoy> coursePoints) {
         this.coursePoints = coursePoints;
     }
-
+    
 }
