@@ -1,0 +1,2 @@
+# scp
+Sailing Course Planner
