@@ -18,6 +18,7 @@ import org.opengis.referencing.NoSuchAuthorityCodeException;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.operation.TransformException;
 import org.vaadin.addon.leaflet.util.PointField;
+import org.vaadin.scp.CourseService;
 import org.vaadin.scp.jpa.HelperBuoy;
 import org.vaadin.scp.jpa.MainBuoy;
 import org.vaadin.viritin.fields.IntegerField;
@@ -63,18 +64,14 @@ public class HelperBuoyEditor extends AbstractForm<HelperBuoy> {
         referencePoint.addValueChangeListener(e -> {
             adjust.setEnabled(e.getValue() != null && mainBuoy.getValue() != null);
         });
-        adjust.addClickListener( e-> {
+        adjust.addClickListener(e-> {
             try {
                 CoordinateReferenceSystem crs = CRS.decode("EPSG:4326");
                 GeodeticCalculator gc = new GeodeticCalculator(crs);
                 gc.setStartingPosition(JTS.toDirectPosition(mainBuoy.getValue().getLocation().getCoordinate(), crs));
                 gc.setDestinationPosition(JTS.toDirectPosition(referencePoint.getValue().getLocation().getCoordinate(), crs));
                 double targetAngle = gc.getAzimuth() + angle.getValue();
-                if(targetAngle > 180) {
-                    targetAngle -= 360;
-                } else if (targetAngle < -180) {
-                    targetAngle += 360;
-                }
+                targetAngle = CourseService.normalizeAzimuth(targetAngle);
                 gc.setDirection(targetAngle, distance.getValue());
                 location.setValue(JTS.toGeometry(gc.getDestinationPosition()));
             } catch (TransformException e1) {
@@ -93,4 +90,5 @@ public class HelperBuoyEditor extends AbstractForm<HelperBuoy> {
 
         return new VerticalLayout(name, mainBuoy, location, reposition, getToolbar());
     }
+
 }

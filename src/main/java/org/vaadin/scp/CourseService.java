@@ -20,6 +20,15 @@ public class CourseService {
 
     private static String[] mainBouyLabels = new String[] {"A", "B", "C", "D", "E", "F","G","H","I","J","K","L","M","N", "O","P","Q","R", "S","T","U"};
 
+    public static double normalizeAzimuth(double targetAngle) {
+        if (targetAngle > 180) {
+            targetAngle -= 360;
+        } else if (targetAngle < -180) {
+            targetAngle += 360;
+        }
+        return targetAngle;
+    }
+
     private HelperBuoyRepository helperBuoyRepository;
     private MainBuoyRepository mainBuoyRepository;
     private SailingCourseRepository sailingCourseRepository;
@@ -85,5 +94,13 @@ public class CourseService {
 
     public void save(SailingCourse course) {
         sailingCourseRepository.save(course);
+    }
+    
+    public SailingCourse findAttachedByUUID(String uuid) {
+        return sailingCourseRepository.findByUuid(uuid);
+    }
+
+    public SailingCourse findAttached(int id) {
+        return sailingCourseRepository.findOneWithDetailsById((long) id);
     }
 }

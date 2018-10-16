@@ -1,5 +1,9 @@
 package org.vaadin.scp.jpa;
 
+import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.GeometryCollection;
+import com.vividsolutions.jts.geom.GeometryFactory;
+import com.vividsolutions.jts.geom.Point;
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.ManyToMany;
@@ -12,10 +16,14 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
+import javax.persistence.ElementCollection;
 
 @Entity
 public class SailingCourse extends AbstractEntity {
 
+    private String uuid = UUID.randomUUID().toString();
+    
     private String courseName;
 
     @Temporal(TemporalType.DATE)
@@ -30,8 +38,19 @@ public class SailingCourse extends AbstractEntity {
     @OrderColumn
     private List<MainBuoy> coursePoints = new ArrayList<>();
     
+    @ElementCollection
+    private Set<String> adminEmails = new HashSet<>();
+
     public SailingCourse() {
 
+    }
+
+    public String getUuid() {
+        return uuid;
+    }
+
+    public void setUuid(String uuid) {
+        this.uuid = uuid;
     }
 
     public Date getDate() {
@@ -73,5 +92,26 @@ public class SailingCourse extends AbstractEntity {
     public void setCoursePoints(List<MainBuoy> coursePoints) {
         this.coursePoints = coursePoints;
     }
-    
+
+    public Set<String> getAdminEmails() {
+        return adminEmails;
+    }
+
+    public void setAdminEmails(Set<String> adminEmails) {
+        this.adminEmails = adminEmails;
+    }
+
+    /**
+     * @return the center point of all buoys in the course
+     */
+    public Point getCentroid() {
+        GeometryFactory geometryFactory = new GeometryFactory();
+        ArrayList<Geometry> geoms = new ArrayList<>();
+        getMainBuoys().forEach(g -> geoms.add(g.getLocation()));
+        getHelperBuoys().forEach(g -> geoms.add(g.getLocation()));
+        GeometryCollection gc = geometryFactory.createGeometryCollection(geoms.toArray(new Geometry[]{}));
+        Point centroid = gc.getCentroid();
+        return centroid;
+    }
+
 }

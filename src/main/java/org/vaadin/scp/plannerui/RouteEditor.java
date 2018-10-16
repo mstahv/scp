@@ -4,9 +4,10 @@ import com.vaadin.data.HasValue;
 import com.vaadin.event.dd.DragAndDropEvent;
 import com.vaadin.icons.VaadinIcons;
 import com.vaadin.shared.Registration;
+import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
-import com.vaadin.ui.Label;
+import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import fi.jasoft.dragdroplayouts.DDVerticalLayout;
@@ -29,19 +30,12 @@ public class RouteEditor extends VerticalLayout implements HasValue<List<MainBuo
     DDVerticalLayout buoyLayout = new DDVerticalLayout();
 
     public RouteEditor(CourseEditor editor) {
-        setCaption("Route points (drag to re-order)");
+        setCaption("Route points");
         this.editor = editor;
         addComponent(buoyLayout);
         buoyLayout.setMargin(false);
+        buoyLayout.setSpacing(false);
         setMargin(false);
-    }
-
-    @Override
-    public void setValue(List<MainBuoy> mainBuoys) {
-        buoyLayout.removeAllComponents();
-        this.mainBuoys = mainBuoys;
-        mainBuoys.forEach(this::addBuoy);
-
         buoyLayout.setComponentVerticalDropRatio(0.5f);
         buoyLayout.setDragMode(LayoutDragMode.CLONE);
         buoyLayout.setDropHandler(new DefaultVerticalLayoutDropHandler() {
@@ -51,6 +45,14 @@ public class RouteEditor extends VerticalLayout implements HasValue<List<MainBuo
                 updateStateFromComponentTree();
             }
         });
+    }
+
+    @Override
+    public void setValue(List<MainBuoy> mainBuoys) {
+        buoyLayout.removeAllComponents();
+        this.mainBuoys = mainBuoys;
+        mainBuoys.forEach(this::addBuoy);
+
 
     }
 
@@ -103,14 +105,16 @@ public class RouteEditor extends VerticalLayout implements HasValue<List<MainBuo
 
         public BuoyRow(MainBuoy buoy) {
             this.buoy = buoy;
+            withMargin(false);
             Button removeRoutePoint = new Button(VaadinIcons.TRASH);
             removeRoutePoint.setStyleName(ValoTheme.BUTTON_BORDERLESS);
-            removeRoutePoint.addClickListener(e->{
+            removeRoutePoint.addClickListener(e-> {
                 buoyLayout.removeComponent(this);
                 updateStateFromComponentTree();
             });
-            expand(new MLabel(buoy.getName() + " " + buoy.getLocation()).withUndefinedWidth());
+            expand(new MLabel(buoy.getName() + String.format(" (%.4f%n %.4f%n)", buoy.getLocation().getCoordinate().x, buoy.getLocation().getCoordinate().y)).withUndefinedWidth());
             add(removeRoutePoint);
+            alignAll(Alignment.MIDDLE_LEFT);
         }
 
     }

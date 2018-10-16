@@ -28,7 +28,6 @@ public class HelperBuoy extends AbstractBuoy {
         this.mainBuoy = mainBuoy;
     }
 
-    @Transient
     public LineString getConnectionLine() {
         GeometryFactory factory = new GeometryFactory();
         return factory.createLineString(new Coordinate[]{mainBuoy.getLocation().getCoordinate(), getLocation().getCoordinate()});
