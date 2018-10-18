@@ -6,7 +6,7 @@
 package org.vaadin.scp.mobileui;
 
 import com.vaadin.annotations.Widgetset;
-import com.vaadin.server.FontAwesome;
+import com.vaadin.icons.VaadinIcons;
 import com.vaadin.server.VaadinRequest;
 import com.vaadin.shared.ui.ContentMode;
 import com.vaadin.spring.annotation.SpringUI;
@@ -79,14 +79,14 @@ public class MobileUI extends UI {
     @Override
     protected void init(VaadinRequest request) {
         final String uuid = request.getParameter("uuid");
-        
+
         try {
             course = service.findAttachedByUUID(uuid);
         } catch (Exception e) {
             reportUnknownCourse();
             return;
         }
-        if(course == null) {
+        if (course == null) {
             reportUnknownCourse();
             return;
         }
@@ -95,44 +95,18 @@ public class MobileUI extends UI {
 
         AbsoluteLayout absoluteLayout = new AbsoluteLayout();
         map.addLayer(new LOpenStreetMapLayer());
-        myPositionMarker.setMap(this, map);
+        myPositionMarker.setMap(map);
 
-        Set<MainBuoy> mainBuoys = course.getMainBuoys();
-        mainBuoys.forEach(b -> {
-            Point location = b.getLocation();
-            LMarker marker = new LMarker(location);
-            marker.setIcon(b.getName());
-            marker.addClickListener(e -> {
-                navigateTo(b);
-            });
-            map.addLayer(marker);
-        });
+        drawMainBuoys();
 
         drawRouteLine();
 
-        for (HelperBuoy hb : course.getHelperBuoys()) {
-            LMarker marker = new LMarker(hb.getLocation());
-            marker.setTooltip("G");
-            TooltipState tooltipState = new TooltipState();
-            tooltipState.sticky = true;
-            marker.setTooltipState(tooltipState);
-            marker.setIcon(FontAwesome.BULLSEYE);
-            marker.setIconPathFill("gray");
-            marker.addClickListener(e -> {
-                navigateTo(hb);
-            });
-            map.addLayer(marker);
-            if (hb.getMainBuoy() != null) {
-                LPolyline connector = new LPolyline(hb.getConnectionLine());
-                connector.setDashArray("8, 4");
-                connector.setColor("gray");
-                map.addLayer(connector);
-            }
-        }
+        drawHelperBuoys();
 
         map.zoomToContent();
 
-        Notification.show("Click on buoys to change the navigation target.");
+        Notification usageTip = Notification.show("Click on buoys to change the navigation target.");
+        usageTip.setDelayMsec(3000);
 
         absoluteLayout.addComponent(map);
         absoluteLayout.addComponent(targetLabel, "right:5px;top:5px;z-index:1000000;");
@@ -151,26 +125,60 @@ public class MobileUI extends UI {
         });
     }
 
+    public void drawHelperBuoys() {
+        for (HelperBuoy hb : course.getHelperBuoys()) {
+            LMarker marker = new LMarker(hb.getLocation());
+            marker.setTooltip("G");
+            TooltipState tooltipState = new TooltipState();
+            tooltipState.sticky = true;
+            marker.setTooltipState(tooltipState);
+            marker.setIcon(VaadinIcons.BULLSEYE);
+            marker.setIconPathFill("gray");
+            marker.addClickListener(e -> {
+                navigateTo(hb);
+            });
+            map.addLayer(marker);
+            if (hb.getMainBuoy() != null) {
+                LPolyline connector = new LPolyline(hb.getConnectionLine());
+                connector.setDashArray("8, 4");
+                connector.setColor("gray");
+                map.addLayer(connector);
+            }
+        }
+    }
+
+    public void drawMainBuoys() {
+        Set<MainBuoy> mainBuoys = course.getMainBuoys();
+        mainBuoys.forEach(b -> {
+            Point location = b.getLocation();
+            LMarker marker = new LMarker(location);
+            marker.setIcon(b.getName());
+            marker.addClickListener(e -> {
+                navigateTo(b);
+            });
+            map.addLayer(marker);
+        });
+    }
+
     public void reportUnknownCourse() {
         Notification.show("The course was not found :-(", Notification.Type.ERROR_MESSAGE);
-        return;
     }
 
     public void updateTargetLabel() throws IllegalStateException, IllegalArgumentException {
         StringBuilder sb = new StringBuilder();
-        sb.append("<div style='color: white; font-weight: bold; font-size: large;'>Buoy ");
+        sb.append("<div style='color: white; font-weight: bold; font-size: large; text-shadow: 1px 1px 2px black;'>Buoy ");
         sb.append(targetBuoy.getName());
         try {
             gc.setStartingGeographicPoint(lastKnownPoint.getLon(), lastKnownPoint.getLat());
             gc.setDestinationPosition(JTS.toDirectPosition(targetBuoy.getLocation().getCoordinate(), crs));
             int azimuth = (int) gc.getAzimuth();
-            if(azimuth < 0) {
+            if (azimuth < 0) {
                 azimuth = azimuth + 360;
             }
-            int orthodromicDistance = (int) gc.getOrthodromicDistance();
+            double orthodromicDistance = gc.getOrthodromicDistance();
             sb.append(" is ");
-            sb.append(orthodromicDistance);
-            sb.append(" meters to ");
+            sb.append(CourseService.formatDistance(orthodromicDistance));
+            sb.append(" to ");
             sb.append(azimuth);
             sb.append("°");
             if (lastKnownSpeed == null || lastKnownSpeed == 0 || lastKnownAccuracy > 40) {
@@ -212,7 +220,6 @@ public class MobileUI extends UI {
         GeometryFactory factory = new GeometryFactory();
         Coordinate[] coordinates = new Coordinate[course.getCoursePoints().size()];
         for (int i = 0; i < course.getCoursePoints().size(); i++) {
-            final boolean first = i == 0;
             coordinates[i] = course.getCoursePoints().get(i).getLocation().getCoordinate();
         }
         if (coordinates.length > 2) {
@@ -221,5 +228,6 @@ public class MobileUI extends UI {
         }
 
     }
+
 
 }

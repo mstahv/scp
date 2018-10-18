@@ -2,6 +2,7 @@ package org.vaadin.scp;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
+import javax.measure.Quantity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.vaadin.scp.jpa.HelperBuoy;
@@ -10,6 +11,9 @@ import org.vaadin.scp.jpa.MainBuoy;
 import org.vaadin.scp.jpa.MainBuoyRepository;
 import org.vaadin.scp.jpa.SailingCourse;
 import org.vaadin.scp.jpa.SailingCourseRepository;
+import si.uom.NonSI;
+import si.uom.SI;
+import si.uom.impl.quantity.LengthAmount;
 
 /**
  * Created by mstahv
@@ -27,6 +31,12 @@ public class CourseService {
             targetAngle += 360;
         }
         return targetAngle;
+    }
+
+    public static String formatDistance(double meters) {
+        LengthAmount l = new LengthAmount(meters, SI.METRE);
+        Quantity to = l.to(NonSI.NAUTICAL_MILE);
+        return String.format("%d m, %.2f nm", (int) meters, to.getValue());
     }
 
     private HelperBuoyRepository helperBuoyRepository;
@@ -48,6 +58,7 @@ public class CourseService {
         mainBuoy.setName(mainBouyLabels[nextLabelIndex%mainBouyLabels.length]);
         //mainBuoy = mainBuoyRepository.save(mainBuoy);
         course.getMainBuoys().add(mainBuoy);
+        course.getCoursePoints().add(mainBuoy);
         return mainBuoy;
     }
 

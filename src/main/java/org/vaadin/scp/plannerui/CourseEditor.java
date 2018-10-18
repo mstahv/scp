@@ -2,7 +2,7 @@ package org.vaadin.scp.plannerui;
 
 import com.vaadin.annotations.StyleSheet;
 import com.vaadin.data.Binder;
-import com.vaadin.server.FontAwesome;
+import com.vaadin.icons.VaadinIcons;
 import com.vaadin.shared.Registration;
 import com.vaadin.spring.annotation.SpringComponent;
 import com.vaadin.spring.annotation.UIScope;
@@ -10,7 +10,6 @@ import com.vaadin.ui.Button;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.HorizontalSplitPanel;
 import com.vaadin.ui.Label;
-import com.vaadin.ui.NativeSelect;
 import com.vaadin.ui.Notification;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
@@ -27,8 +26,6 @@ import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.operation.TransformException;
 import org.vaadin.addon.leaflet.LMarker;
 import org.vaadin.addon.leaflet.LPolyline;
-import org.vaadin.addon.leaflet.LeafletClickEvent;
-import org.vaadin.addon.leaflet.LeafletClickListener;
 import org.vaadin.addon.leaflet.shared.TooltipState;
 import org.vaadin.addon.leaflet.util.JTSUtil;
 import org.vaadin.scp.CourseService;
@@ -45,9 +42,6 @@ import org.vaadin.viritin.layouts.MVerticalLayout;
 
 import java.util.ArrayList;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import org.opengis.geometry.DirectPosition;
 import org.vaadin.viritin.button.MButton;
 import org.vaadin.viritin.fields.CommaSeparatedStringField;
 import org.vaadin.viritin.fields.DoubleField;
@@ -73,7 +67,7 @@ public class CourseEditor extends HorizontalSplitPanel {
 
     RouteEditor routePoints = new RouteEditor(this);
 
-    NativeSelect<MainBuoy> addBuoyToRoute = new NativeSelect<>();
+    ComboBox<MainBuoy> addBuoyToRoute = new ComboBox<>();
 
     MGrid<MainBuoy> mGrid = new MGrid<>(MainBuoy.class).withCaption("RoutePoints (d'n'd to re-order)")
             .withProperties("name", "location")
@@ -96,7 +90,7 @@ public class CourseEditor extends HorizontalSplitPanel {
             editCourse(course);
         }).withStyleName(ValoTheme.BUTTON_SMALL);
 
-        ConfirmButton close = new ConfirmButton("Close course", "Are you sure you want to close this course, unsaved changes will be lost?", e -> {
+        Button close = new MButton("Close course",e -> {
             MainUI.showListing();
         }).withStyleName(ValoTheme.BUTTON_SMALL);
 
@@ -104,8 +98,8 @@ public class CourseEditor extends HorizontalSplitPanel {
 
         details.addComponents(courseName, adminEmails, courseLenght, routePoints, addBuoyToRoute);
         adminEmails.setWidth("100%");
-
-        addBuoyToRoute.setCaption("Add existing buoy to route...");
+        
+        addBuoyToRoute.setEmptySelectionCaption("Add existing buoy...");
         addBuoyToRoute.setItemCaptionGenerator(b -> b.getName());
         addBuoyToRoute.setEmptySelectionAllowed(false);
         addBuoyToRoute.addValueChangeListener(e -> {
@@ -115,45 +109,42 @@ public class CourseEditor extends HorizontalSplitPanel {
                 addBuoyToRoute.setValue(null);
             }
         });
+        addBuoyToRoute.setWidth("100%");
 
-        Button addNewMainBuoy = new MButton("New main buoy...", e -> {
-            Notification.show("Click on map to set location...");
+        Button addNewMainBuoy = new MButton("New buoy...", e -> {
+            Notification.show("Click on map to set location...", Notification.Type.TRAY_NOTIFICATION);
             map.addStyleName("crosshair");
-            mapClickListener = map.addClickListener(new LeafletClickListener() {
-                @Override
-                public void onClick(LeafletClickEvent event) {
-                    MainBuoy mainBuoy = service.addBuoy(course, JTSUtil.toPoint(event.getPoint()).getCoordinate());
-                    course.getCoursePoints().add(mainBuoy);
-                    drawCourse();
-                    mapClickListener.remove();
-                    map.removeStyleName("crosshair");
-                    updateMainBuoys();
-                }
+            mapClickListener = map.addClickListener(event -> {
+                MainBuoy mainBuoy = service.addBuoy(course, 
+                        JTSUtil.toPoint(event.getPoint()).getCoordinate());
+                drawCourse();
+                mapClickListener.remove();
+                map.removeStyleName("crosshair");
+                updateMainBuoys();
             });
         }).withStyleName(ValoTheme.BUTTON_SMALL);
         Button addNewHelperBuoy = new MButton("New helper buoy...",e -> {
-            Notification.show("Click on map to set location...");
+            Notification.show("Click on map to set location...", Notification.Type.TRAY_NOTIFICATION);
             map.addStyleName("crosshair");
-            mapClickListener = map.addClickListener(new LeafletClickListener() {
-                @Override
-                public void onClick(LeafletClickEvent event) {
-                    HelperBuoy helperBuoy = service.addHelperBuoy(course, null, JTSUtil.toPoint(event.getPoint()).getCoordinate());
-                    drawCourse();
-                    mapClickListener.remove();
-                    map.removeStyleName("crosshair");
-                }
+            mapClickListener = map.addClickListener(event -> {
+                service.addHelperBuoy(course, null, 
+                        JTSUtil.toPoint(event.getPoint()).getCoordinate());
+                drawCourse();
+                mapClickListener.remove();
+                map.removeStyleName("crosshair");
             });
 
-        }).withStyleName(ValoTheme.BUTTON_SMALL);
+        }).withStyleName(ValoTheme.BUTTON_SMALL)
+          .withDescription("Helper buoys are not calculated to course leght, use e.g. to mark finishing/starting line.");
 
         Button rotate = new MButton("Rotate and scale...", e -> {
             IntegerField degreesField = new IntegerField("Degrees (from the center of the course)");
             degreesField.setValue(90);
             DoubleField scaleField = new DoubleField("Scale");
             scaleField.setValue(1.0);
-            MButton doRotateBtn = new MButton("Rotate!", e2 -> {
-                rotate(degreesField.getValue(), scaleField.getValue());
-            });
+            MButton doRotateBtn = new MButton("Rotate!", e2 ->
+                rotate(degreesField.getValue(), scaleField.getValue())
+            );
             Window w = new Window("Rotate...",
                     new VerticalLayout(
                             degreesField,
@@ -162,7 +153,8 @@ public class CourseEditor extends HorizontalSplitPanel {
                     ));
             w.setModal(true);
             getUI().addWindow(w);
-        }).withStyleName(ValoTheme.BUTTON_SMALL);
+        }).withStyleName(ValoTheme.BUTTON_SMALL)
+                .withDescription("Rotate/scale the whole course, for example to match current wind conditions.");
 
         details.addComponents(addNewMainBuoy, addNewHelperBuoy, rotate);
 
@@ -174,45 +166,9 @@ public class CourseEditor extends HorizontalSplitPanel {
 
     }
 
-    public void rotate(Integer degrees, Double scale) throws IllegalStateException, IllegalArgumentException {
-        Point centroid = course.getCentroid();
-
-        CoordinateReferenceSystem crs;
-        try {
-            crs = CRS.decode("EPSG:4326");
-            GeodeticCalculator gc = new GeodeticCalculator(crs);
-            GeometryFactory factory = new GeometryFactory();
-
-            gc.setStartingPosition(JTS.toDirectPosition(centroid.getCoordinate(), crs));
-
-            for (MainBuoy mb : course.getMainBuoys()) {
-                final Point location = mb.getLocation();
-                Point rotatedPoint = rotatePoint(gc, location, degrees, scale);
-                mb.setLocation(rotatedPoint);
-            }
-            for (HelperBuoy b : course.getHelperBuoys()) {
-                Point location = b.getLocation();
-                Point rotated = rotatePoint(gc, location, degrees, scale);
-                b.setLocation(rotated);
-            }
-        } catch (FactoryException ex) {
-            Logger.getLogger(CourseEditor.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (TransformException ex) {
-            Logger.getLogger(CourseEditor.class.getName()).log(Level.SEVERE, null, ex);
-        }
+    public void rotate(Integer degrees, Double scale) {
+        course.rotate(degrees, scale);
         drawCourse();
-    }
-
-    public Point rotatePoint(GeodeticCalculator gc, final Point location, Integer degrees, Double scale) throws TransformException, IllegalArgumentException, IllegalStateException {
-        gc.setDestinationGeographicPoint(location.getX(), location.getY());
-        double azimuth = gc.getAzimuth();
-        final double orthodromicDistance = gc.getOrthodromicDistance();
-        azimuth = CourseService.normalizeAzimuth(azimuth + degrees);
-        gc.setDirection(azimuth, orthodromicDistance * scale);
-        DirectPosition destinationPosition = gc.getDestinationPosition();
-        Point rotatedPoint = JTS.toGeometry(destinationPosition);
-        System.err.println(location + " -> " + rotatedPoint);
-        return rotatedPoint;
     }
 
     private void updateMainBuoys() {
@@ -237,7 +193,6 @@ public class CourseEditor extends HorizontalSplitPanel {
         map.clear();
         Set<MainBuoy> mainBuoys = course.getMainBuoys();
         mainBuoys.forEach(b -> {
-            System.err.println("Drawing mb " + b);
             Point location = b.getLocation();
             LMarker marker = new LMarker(location);
             marker.setIcon(b.getName());
@@ -268,11 +223,10 @@ public class CourseEditor extends HorizontalSplitPanel {
 
         for (HelperBuoy hb : course.getHelperBuoys()) {
             LMarker marker = new LMarker(hb.getLocation());
-            marker.setTooltip("G");
             TooltipState tooltipState = new TooltipState();
             tooltipState.sticky = true;
             marker.setTooltipState(tooltipState);
-            marker.setIcon(FontAwesome.BULLSEYE);
+            marker.setIcon(VaadinIcons.BULLSEYE);
             marker.setIconPathFill("gray");
             marker.addDragEndListener(e -> {
                 Point geometry = (Point) marker.getGeometry();
@@ -327,11 +281,9 @@ public class CourseEditor extends HorizontalSplitPanel {
                 LPolyline routeLine = new LPolyline(factory.createLineString(coordinates));
                 map.addLayer(routeLine);
             }
-            courseLenght.setValue(((int) distance) + "m");
-        } catch (FactoryException e) {
-            e.printStackTrace();
-        } catch (TransformException e) {
-            e.printStackTrace();
+            courseLenght.setValue(CourseService.formatDistance(distance));
+        } catch (IllegalStateException | FactoryException | TransformException e) {
+            throw new RuntimeException(e);
         }
 
     }

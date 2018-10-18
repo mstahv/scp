@@ -30,7 +30,7 @@ public class RouteEditor extends VerticalLayout implements HasValue<List<MainBuo
     DDVerticalLayout buoyLayout = new DDVerticalLayout();
 
     public RouteEditor(CourseEditor editor) {
-        setCaption("Route points");
+        setCaption("Route points (drag to re-order)");
         this.editor = editor;
         addComponent(buoyLayout);
         buoyLayout.setMargin(false);

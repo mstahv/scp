@@ -11,7 +11,7 @@ import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Link;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.themes.ValoTheme;
-import org.vaadin.scp.SessionService;
+import org.vaadin.scp.UserService;
 import org.vaadin.scp.auth.LoginView;
 import org.vaadin.scp.jpa.SailingCourse;
 import org.vaadin.scp.jpa.SailingCourseRepository;
@@ -30,11 +30,11 @@ public class MainUI extends UI {
 
     private final CourseEditor courseEditor;
     private MGrid<SailingCourse> coursesGrid = new MGrid<>();
-    private final SessionService sessionService;
+    private final UserService sessionService;
     private final LoginView loginView;
     private final Button addCourse = new MButton("New course");
 
-    public MainUI(CourseEditor view, SessionService sessionService, LoginView loginView) {
+    public MainUI(CourseEditor view, UserService sessionService, LoginView loginView) {
         this.courseEditor = view;
         this.sessionService = sessionService;
         this.loginView = loginView;

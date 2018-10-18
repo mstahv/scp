@@ -1,5 +1,6 @@
 package org.vaadin.scp;
 
+import com.vaadin.server.BootstrapPageResponse;
 import com.vaadin.spring.server.SpringVaadinServlet;
 import java.io.IOException;
 import javax.servlet.ServletException;
@@ -19,7 +20,15 @@ public class SpringAwareTouchKitServlet extends SpringVaadinServlet {
     @Override
     protected void servletInitialized() throws ServletException {
         super.servletInitialized();
-        touchKitSettings = new TouchKitSettings(getService());
+        touchKitSettings = new TouchKitSettings(getService()) {
+            @Override
+            public void modifyBootstrapPage(BootstrapPageResponse response) {
+                // only use PWA/mobile web app stuff for the mobile view
+                if(response.getRequest().getPathInfo().contains("mobile")) {
+                    super.modifyBootstrapPage(response);
+                }
+            }
+        };
     }
 
     @Override

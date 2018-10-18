@@ -19,7 +19,7 @@ import org.vaadin.scp.jpa.SailingCourseRepository;
  */
 @Component
 @VaadinSessionScope
-public class SessionService {
+public class UserService {
     
     private String email;
     private final SailingCourseRepository sailingCourseRepository;
@@ -27,7 +27,7 @@ public class SessionService {
     @Value("${devmode:false}")
     private boolean devmode;
 
-    public SessionService(SailingCourseRepository repo) {
+    public UserService(SailingCourseRepository repo) {
         this.sailingCourseRepository = repo;
     }
 

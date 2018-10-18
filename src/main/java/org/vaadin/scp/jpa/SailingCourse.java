@@ -17,13 +17,24 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.persistence.ElementCollection;
+import org.geotools.geometry.jts.JTS;
+import org.geotools.referencing.CRS;
+import org.geotools.referencing.GeodeticCalculator;
+import org.opengis.geometry.DirectPosition;
+import org.opengis.referencing.FactoryException;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
+import org.opengis.referencing.operation.TransformException;
+import org.vaadin.scp.CourseService;
+import org.vaadin.scp.plannerui.CourseEditor;
 
 @Entity
 public class SailingCourse extends AbstractEntity {
 
     private String uuid = UUID.randomUUID().toString();
-    
+
     private String courseName;
 
     @Temporal(TemporalType.DATE)
@@ -37,7 +48,7 @@ public class SailingCourse extends AbstractEntity {
     @ManyToMany(cascade = CascadeType.ALL)
     @OrderColumn
     private List<MainBuoy> coursePoints = new ArrayList<>();
-    
+
     @ElementCollection
     private Set<String> adminEmails = new HashSet<>();
 
@@ -112,6 +123,39 @@ public class SailingCourse extends AbstractEntity {
         GeometryCollection gc = geometryFactory.createGeometryCollection(geoms.toArray(new Geometry[]{}));
         Point centroid = gc.getCentroid();
         return centroid;
+    }
+
+    public void rotate(int degrees, double scale) {
+        CoordinateReferenceSystem crs;
+        try {
+            crs = CRS.decode("EPSG:4326");
+            GeodeticCalculator gc = new GeodeticCalculator(crs);
+            gc.setStartingPosition(JTS.toDirectPosition(getCentroid().getCoordinate(), crs));
+
+            for (MainBuoy mb : getMainBuoys()) {
+                final Point location = mb.getLocation();
+                Point rotatedPoint = rotatePoint(gc, location, degrees, scale);
+                mb.setLocation(rotatedPoint);
+            }
+            for (HelperBuoy b : getHelperBuoys()) {
+                Point location = b.getLocation();
+                Point rotated = rotatePoint(gc, location, degrees, scale);
+                b.setLocation(rotated);
+            }
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+
+    private Point rotatePoint(GeodeticCalculator gc, final Point location, Integer degrees, Double scale) throws TransformException, IllegalArgumentException, IllegalStateException {
+        gc.setDestinationGeographicPoint(location.getX(), location.getY());
+        double azimuth = gc.getAzimuth();
+        final double orthodromicDistance = gc.getOrthodromicDistance();
+        azimuth = CourseService.normalizeAzimuth(azimuth + degrees);
+        gc.setDirection(azimuth, orthodromicDistance * scale);
+        DirectPosition destinationPosition = gc.getDestinationPosition();
+        Point rotatedPoint = JTS.toGeometry(destinationPosition);
+        return rotatedPoint;
     }
 
 }

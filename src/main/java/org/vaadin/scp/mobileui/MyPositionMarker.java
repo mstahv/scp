@@ -18,24 +18,16 @@ public class MyPositionMarker implements LeafletLocateListener {
     private LCircleMarker dot = new LCircleMarker();
     private LMarker you = new LMarker();
     private LPolyline snake; 
-    private boolean centerNextPosition = false;
-    private MobileUI ui;
 
-    public void setMap(MobileUI ui, LMap map) {
+    public void setMap(LMap map) {
         if (this.map == null) {
             this.map = map;
             map.addLocateListener(this);
-            this.ui = ui;
         }
     }
 
     public void locate() {
-        locate(true);
-    }
-
-    public void locate(boolean centerNextLocation) {
         map.locate(true, true, false);
-        this.centerNextPosition = centerNextLocation;
     }
 
     public void stopLocate() {

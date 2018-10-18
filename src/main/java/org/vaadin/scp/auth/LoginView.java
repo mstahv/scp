@@ -22,7 +22,7 @@ import org.scribe.model.Verifier;
 import org.scribe.oauth.OAuthService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
-import org.vaadin.scp.SessionService;
+import org.vaadin.scp.UserService;
 import org.vaadin.viritin.label.RichText;
 import org.vaadin.viritin.layouts.MVerticalLayout;
 
@@ -38,7 +38,7 @@ public class LoginView extends MVerticalLayout implements RequestHandler {
     Environment environment;
     
     @Autowired
-    SessionService sessionService;
+    UserService sessionService;
 
     Link loginLink;
     private String gpluskey;
