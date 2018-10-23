@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.vaadin.scp.mobileui;
 
 import com.vaadin.annotations.Widgetset;
@@ -169,10 +164,12 @@ public class MobileUI extends UI {
         sb.append("<div style='color: white; font-weight: bold; font-size: large; text-shadow: 1px 1px 2px black;'>Buoy ");
         sb.append(targetBuoy.getName());
         try {
+            gc = new GeodeticCalculator();
             gc.setStartingGeographicPoint(lastKnownPoint.getLon(), lastKnownPoint.getLat());
             gc.setDestinationPosition(JTS.toDirectPosition(targetBuoy.getLocation().getCoordinate(), crs));
             int azimuth = (int) gc.getAzimuth();
             if (azimuth < 0) {
+                // convert to "compass angle"
                 azimuth = azimuth + 360;
             }
             double orthodromicDistance = gc.getOrthodromicDistance();

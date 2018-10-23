@@ -17,18 +17,15 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.persistence.ElementCollection;
+
 import org.geotools.geometry.jts.JTS;
 import org.geotools.referencing.CRS;
 import org.geotools.referencing.GeodeticCalculator;
 import org.opengis.geometry.DirectPosition;
-import org.opengis.referencing.FactoryException;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.operation.TransformException;
 import org.vaadin.scp.CourseService;
-import org.vaadin.scp.plannerui.CourseEditor;
 
 @Entity
 public class SailingCourse extends AbstractEntity {
@@ -149,10 +146,17 @@ public class SailingCourse extends AbstractEntity {
 
     private Point rotatePoint(GeodeticCalculator gc, final Point location, Integer degrees, Double scale) throws TransformException, IllegalArgumentException, IllegalStateException {
         gc.setDestinationGeographicPoint(location.getX(), location.getY());
+
+        // read the original direction and distance from origin point
         double azimuth = gc.getAzimuth();
         final double orthodromicDistance = gc.getOrthodromicDistance();
+
+        // calculate new direction and distance
         azimuth = CourseService.normalizeAzimuth(azimuth + degrees);
-        gc.setDirection(azimuth, orthodromicDistance * scale);
+        double newDistance = orthodromicDistance * scale;
+        gc.setDirection(azimuth, newDistance);
+
+        // read the new geodesic position
         DirectPosition destinationPosition = gc.getDestinationPosition();
         Point rotatedPoint = JTS.toGeometry(destinationPosition);
         return rotatedPoint;

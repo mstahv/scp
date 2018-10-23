@@ -138,21 +138,7 @@ public class CourseEditor extends HorizontalSplitPanel {
           .withDescription("Helper buoys are not calculated to course leght, use e.g. to mark finishing/starting line.");
 
         Button rotate = new MButton("Rotate and scale...", e -> {
-            IntegerField degreesField = new IntegerField("Degrees (from the center of the course)");
-            degreesField.setValue(90);
-            DoubleField scaleField = new DoubleField("Scale");
-            scaleField.setValue(1.0);
-            MButton doRotateBtn = new MButton("Rotate!", e2 ->
-                rotate(degreesField.getValue(), scaleField.getValue())
-            );
-            Window w = new Window("Rotate...",
-                    new VerticalLayout(
-                            degreesField,
-                            scaleField,
-                            doRotateBtn
-                    ));
-            w.setModal(true);
-            getUI().addWindow(w);
+            openRotateAndScaleDialog();
         }).withStyleName(ValoTheme.BUTTON_SMALL)
                 .withDescription("Rotate/scale the whole course, for example to match current wind conditions.");
 
@@ -164,6 +150,24 @@ public class CourseEditor extends HorizontalSplitPanel {
         
         binder.bindInstanceFields(this);
 
+    }
+
+    public void openRotateAndScaleDialog() throws IllegalArgumentException, NullPointerException {
+        IntegerField degreesField = new IntegerField("Degrees (from the center of the course)");
+        degreesField.setValue(90);
+        DoubleField scaleField = new DoubleField("Scale");
+        scaleField.setValue(1.0);
+        MButton doRotateBtn = new MButton("Rotate!", e2 ->
+                rotate(degreesField.getValue(), scaleField.getValue())
+        );
+        Window w = new Window("Rotate...",
+                new VerticalLayout(
+                        degreesField,
+                        scaleField,
+                        doRotateBtn
+                ));
+        w.setModal(true);
+        getUI().addWindow(w);
     }
 
     public void rotate(Integer degrees, Double scale) {
@@ -201,7 +205,7 @@ public class CourseEditor extends HorizontalSplitPanel {
                 b.setLocation(geometry);
                 drawCourse();
             });
-            marker.addClickListener(e -> {
+            marker.addClickListener(e -> {                
                 MainBuoyEditor editor = new MainBuoyEditor();
                 editor.setDeleteHandler(buoy -> {
                     service.removeBuoy(buoy);

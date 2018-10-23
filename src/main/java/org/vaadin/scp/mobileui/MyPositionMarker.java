@@ -1,4 +1,3 @@
-
 package org.vaadin.scp.mobileui;
 
 import com.vaadin.spring.annotation.UIScope;

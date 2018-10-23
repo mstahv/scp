@@ -2,13 +2,10 @@ package org.vaadin.scp;
 
 import com.vaadin.server.VaadinServlet;
 import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.GeometryFactory;
-import java.util.Arrays;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
-import org.vaadin.scp.jpa.HelperBuoy;
 import org.vaadin.scp.jpa.HelperBuoyRepository;
 import org.vaadin.scp.jpa.MainBuoy;
 import org.vaadin.scp.jpa.MainBuoyRepository;
@@ -77,6 +74,7 @@ public class SailingCoursePlannerApplication {
             course.getCoursePoints().add(buoy2);
 
             repo.save(course);
+
         }
 
     }

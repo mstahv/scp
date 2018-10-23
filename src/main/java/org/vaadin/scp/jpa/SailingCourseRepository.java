@@ -9,7 +9,10 @@ import org.springframework.data.repository.query.Param;
 /**
  * Created by mstahv
  */
-public interface SailingCourseRepository extends JpaRepository<SailingCourse,Long> {
+public interface SailingCourseRepository
+        extends JpaRepository<SailingCourse,Long> {
+
+    // findAll, count, save, delete, findBy(Example example) etc via super interface
 
     @EntityGraph(attributePaths = {"mainBuoys", "helperBuoys", "coursePoints", "adminEmails"})
     public SailingCourse findOneWithDetailsById(Long id);

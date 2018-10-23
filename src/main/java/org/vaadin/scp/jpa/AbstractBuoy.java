@@ -14,8 +14,10 @@ import javax.validation.constraints.NotNull;
 public class AbstractBuoy extends AbstractEntity {
 
     private String name;
+
     @Column(columnDefinition = "GEOGRAPHY")
     private Point location;
+
     @NotNull
     @ManyToOne
     private SailingCourse course;
