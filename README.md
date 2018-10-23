@@ -2,6 +2,10 @@
 
 Sailing Course Planner is a simple application to help organizing Sailing compotitions. You can use it to visually design your course using a desktop/tablet UI, share the course with other organisers and use a mobile UI when actually setting it up (dropping buoys to right location).
 
+## Hosted version
+
+A hosted version running on a minimal server is available in https://scp.virit.in/, but there are no SLAs given for this as Sailing Course Planner is just a hobby project ATM.
+
 ## Features, design view
 
  * share courses with other
