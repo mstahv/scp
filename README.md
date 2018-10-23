@@ -19,7 +19,7 @@ Planned: course templates
 
  * mobile web app that works with all modern smartphones
  * share the secret track link using email, SMS, whatsup directly to organizers setting up the course
- * Shows course on a map (OpenSeaMap)
+ * Shows course on a map
  * Shows users own position
  * Clicking on buoy opens a mode where app reports distanse, direction (azimuth aka compass direction) and time to buoy with current speed
 
